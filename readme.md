@@ -1,0 +1,14 @@
+{\rtf1\ansi\ansicpg936\cocoartf1265\cocoasubrtf210
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset134 STHeitiSC-Light;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+
+\f0\fs24 \cf0 snapshot\
+\
+
+\f1 \'b8\'f9\'be\'dd
+\f0 reactjs
+\f1 \'cb\'bc\'c2\'b7\'ca\'b5\'cf\'d6\'b5\'c4\'d2\'bb\'b8\'f6
+\f0 ui
+\f1 \'bf\'f2\'bc\'dc}

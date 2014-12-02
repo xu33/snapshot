@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>index</title>
+</head>
+<body>
+    <script src="Component.js"></script>
+    <script>
+    var vom = Snap.createElement
+    var Item = Snap.define({
+        render: function() {
+            return Snap.createElement("div", {key:this.props.key},
+                Snap.createElement("span", {onClick:this.handleClick}, this.props.item)
+            )
+        },
+        handleClick: function(event) {
+            console.log('child click fire')
+            this.props.func()
+        }
+    })
+
+    var List = Snap.define({
+        render: function() {
+            var items = []
+            var props = this.props
+            var list = props.list
+
+            for (var i = 0; i < list.length; i++) {
+                items.push(
+                    vom(Item, {
+                        item: list[i],
+                        key: list[i],
+                        func: this.func.bind(this)
+                    })
+                )
+            }
+
+            return vom('div', {
+                onClick: this.handleClick
+            }, items)
+        },
+        handleClick: function() {
+            console.log('parent click fire')
+        },
+        func: function() {
+            alert(1)
+        }
+    })
+
+    var co = Snap.render(
+        vom(List, {
+            list: [4, 5, 6]
+        }),
+        document.body
+    )
+
+    setTimeout(function() {
+        co.props.list.push('abc')
+        co.setProps({
+            list: co.props.list
+        })
+    }, 1000)
+
+// function listen(el, type, listener) {
+//     var found = false
+//     for (var k in e) {
+//         if (e[k] === listener) {
+//             found = true
+//             break
+//         }
+//     }
+
+//     if (found) {
+//         listener = listener.bind(e)
+//     }
+    
+//     el.addEventListener(type, listener)
+// }
+
+// var e = {
+//     handleClick: function() {
+//         console.log(this);
+//     }
+// }
+
+// listen(window, 'click', function() {
+//     console.log(this)
+// })
+</script>
+</body>
+</html>

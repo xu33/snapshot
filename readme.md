@@ -1,1 +1,1 @@
-根据reactjs的思路实现的一套ui框架
+My own reactjs virtual dom implementation.

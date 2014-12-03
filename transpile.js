@@ -7,6 +7,7 @@ var NORMAL_TAGS = keyMirror('div,p,table,span,input,tr,td,th,tbody,section,artic
 var JS_VARIABLE_RE = /{([^{}]+)}/
 var OPEN_BRACKET = '<'
 
+// hash table for fast query
 function keyMirror(str) {
     var map = {}
     var items = str.split(",")

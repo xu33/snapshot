@@ -552,7 +552,7 @@
                 var nextProp = nextProps[propKey]
                 var lastProp = lastProps[propKey]
 
-                if (!nextProp || nextProp === lastProp) {
+                if (!nextProp || nextProp === lastProp && propKey !== 'value') {
                     continue
                 }
 
@@ -957,8 +957,9 @@
             node.removeAttribute(name)
         },
         updatePropertyByID: function(id, name, value) {
+            console.log('updatePropertyByID:', value)
             var node = SnapMount.getNode(id)
-            if (node.nodeType === 'INPUT' && name === 'value') {
+            if (node.nodeName === 'INPUT' && name === 'value') {
                 node.value = value
             } else {
                 node.setAttribute(name, value)

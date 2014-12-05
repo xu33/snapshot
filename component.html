@@ -40,7 +40,8 @@
             }
 
             items.push(vom('Input', {
-                value: 'abc'
+                value: 'abc',
+                onKeyup: this.handleChange
             }))
 
             return vom('div', {
@@ -54,8 +55,10 @@
         handleClick: function() {
             console.log('parent click fire')
         },
-        handleChange: function() {
-            console.log('parent change fire')
+        handleChange: function(event) {
+            this.setProps({
+                value: event.target.value
+            })
         },
         func: function() {
             alert(1)
@@ -64,7 +67,8 @@
 
     var co = Snap.render(
         vom(List, {
-            list: [4, 5, 6]
+            list: [4, 5, 6],
+            value: 'abc'
         }),
         document.body
     )

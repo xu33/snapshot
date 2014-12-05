@@ -958,7 +958,11 @@
         },
         updatePropertyByID: function(id, name, value) {
             var node = SnapMount.getNode(id)
-            node.setAttribute(name, value)
+            if (node.nodeType === 'INPUT' && name === 'value') {
+                node.value = value
+            } else {
+                node.setAttribute(name, value)
+            }
         },
         processChildrenUpdates: function(updates, markupList) {
             var update
@@ -1186,8 +1190,15 @@
     */
     function initSnapComponent(element, parentCompositeType) {
         var instance
+
         if (typeof element.type === 'string') { // eg:'div'
-            instance = new SnapDomComponent(element.type, element.props, parentCompositeType)
+            if (element.type === 'Input') {
+                instance = new InputComponent(element.props)
+            } else {
+                instance = new SnapDomComponent(element.type, element.props, parentCompositeType)
+            }
+
+            // instance = new SnapDomComponent(element.type, element.props, parentCompositeType)
         } else {
             instance = new element.type(element.props) // SnapComponent
         }
@@ -1437,7 +1448,7 @@
     this.SnapEventManager = {
         bindedEvents: {},
         registerEvent: function(eventName, nodeId, listener) {
-            console.log('registerEvent fire')
+            // console.log('registerEvent fire:', removePrefix(eventName))
             if (!this.bindedEvents.hasOwnProperty(eventName)) {
                 this.bindedEvents[eventName] = {}
 
@@ -1451,7 +1462,7 @@
             console.log(this.bindedEvents[eventName])
         },
         removeEvent: function(eventName, dispatchId) {
-            console.log('removeEvent', dispatchId)
+            // console.log('removeEvent', dispatchId)
             if (this.bindedEvents.hasOwnProperty(eventName)) {
                 if (this.bindedEvents[eventName].hasOwnProperty(dispatchId)) {
                     delete this.bindedEvents[eventName][dispatchId]
@@ -1507,7 +1518,7 @@
             }
         },
         processEventQueue: function() {
-            console.log('processEventQueue', eventQueue.length)
+            // console.log('processEventQueue', eventQueue.length)
             if (eventQueue.length) {
                 for (var i = 0; i < eventQueue.length; i++) {
                     executeListener(eventQueue[0], eventQueue[1])
@@ -1547,4 +1558,24 @@
         },
         render: SnapMount.render
     }
+
+    var InputComponent = Snap.define({
+        render: function() {
+            console.log('render fire')
+            var ipt = Snap.createElement('input', this.props)
+
+            if (this.props.hasOwnProperty('value') && !this.props.onKeyup) {
+                ipt.props.onKeyup = this.defaultHandleChange
+            }
+            
+            return ipt
+        },
+        defaultHandleChange: function(event) {
+            if (event.target.value !== this.props.value) {
+                this.setProps({
+                    value: this.props.value
+                })
+            }
+        }
+    })
 }())

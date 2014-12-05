@@ -39,8 +39,13 @@
                 )
             }
 
+            items.push(vom('Input', {
+                value: 'abc'
+            }))
+
             return vom('div', {
-                onClick: this.handleClick
+                onClick: this.handleClick,
+                onKeyup: this.handleChange
             }, items)
         },
         afterRender: function() {
@@ -48,6 +53,9 @@
         },
         handleClick: function() {
             console.log('parent click fire')
+        },
+        handleChange: function() {
+            console.log('parent change fire')
         },
         func: function() {
             alert(1)

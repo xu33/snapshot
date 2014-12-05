@@ -1483,7 +1483,7 @@
             var listeners = this.bindedEvents[eventName]
             var snapInstance = null
 
-            // 暂时没处理捕获
+            // 暂时不处理捕获
             var listenerQueue = []
             do {
                 // console.log(snapId, listeners[snapId])

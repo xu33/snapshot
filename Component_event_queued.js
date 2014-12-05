@@ -734,6 +734,34 @@
         }
     }
 
+    var snapCallbackQueue = function() {
+        this.callbacks = null
+        this.contexts = null
+    }
+
+    snapCallbackQueue.methods = {
+        add: function(fn, context) {
+            this.callbacks = this.callbacks || []
+            this.contexts = this.contexts || []
+            this.callbacks.push(fn)
+            this.contexts.push(context)
+        },
+        invokeAll: function() {
+            var callbacks = this.callbacks
+            var contexts = this.contexts
+
+            for (var i = 0; i < callbacks.length; i++) {
+                callbacks[i].call(contexts[i])
+            }
+
+            this.callbacks = null
+            this.contexts = null
+        }
+    }
+
+    assign(snapCallbackQueue.prototype, snapCallbackQueue.methods)
+
+    var callbackQueue = new snapCallbackQueue
     var SnapComponent = function() {}
     SnapComponent.methods = {
         construct: function(element) {
@@ -764,6 +792,8 @@
         mountComponentIntoNode: function(rootId, container) {
             var markup = this.mountComponent(rootId, 0)
             setInnerHTML(container, markup)
+
+            callbackQueue.invokeAll()
         },
         mountComponent: function(rootId, mountDepth) {
             this._rootNodeID = rootId
@@ -779,7 +809,9 @@
             )
 
             SnapComponentBase.methods.mountComponent.call(this)
-
+            if (this.afterRender) {
+                callbackQueue.add(this.afterRender, this)
+            }
             return markup
         },
         unmountComponent: function() {
@@ -1032,7 +1064,7 @@
 
         // 从start到stop，一次经过一层
         var depth = 0
-        var traverse = traverseUp ? getParentID : getNextDescendantID
+        var nextId = traverseUp ? getParentID : getNextDescendantID
 
         var id = start
         while (true) {
@@ -1045,7 +1077,7 @@
                 break
             }
 
-            id = traverse(id, stop)
+            id = nextId(id, stop)
         }
     }
 

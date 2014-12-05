@@ -5,7 +5,7 @@
     <title>index</title>
 </head>
 <body>
-    <script src="Component.js"></script>
+    <script src="component_event_queued.js"></script>
     <script>
     var vom = Snap.createElement
     var Item = Snap.define({
@@ -13,6 +13,9 @@
             return Snap.createElement("div", {key:this.props.key},
                 Snap.createElement("span", {onClick:this.handleClick}, this.props.item)
             )
+        },
+        afterRender: function() {
+            console.log('item after render fire')
         },
         handleClick: function(event) {
             console.log('child click fire')
@@ -40,6 +43,9 @@
                 onClick: this.handleClick
             }, items)
         },
+        afterRender: function() {
+            console.log('list after render fire')
+        },
         handleClick: function() {
             console.log('parent click fire')
         },
@@ -55,12 +61,12 @@
         document.body
     )
 
-    setTimeout(function() {
-        co.props.list.push('abc')
-        co.setProps({
-            list: co.props.list
-        })
-    }, 1000)
+    // setTimeout(function() {
+    //     co.props.list.push('abc')
+    //     co.setProps({
+    //         list: co.props.list
+    //     })
+    // }, 1000)
 
 // function listen(el, type, listener) {
 //     var found = false

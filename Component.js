@@ -852,7 +852,9 @@
         },
         forceUpdate: function() {
             this.performUpdateIfNecessary()
-        }
+        },
+        afterRender: null,
+        afterUpdate: null
     }
 
     assign(SnapComponent.prototype, SnapComponent.methods)

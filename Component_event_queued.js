@@ -749,9 +749,10 @@
         invokeAll: function() {
             var callbacks = this.callbacks
             var contexts = this.contexts
-
-            for (var i = 0; i < callbacks.length; i++) {
-                callbacks[i].call(contexts[i])
+            if (callbacks) {
+                for (var i = 0; i < callbacks.length; i++) {
+                    callbacks[i].call(contexts[i])
+                }
             }
 
             this.callbacks = null
@@ -957,7 +958,7 @@
             node.removeAttribute(name)
         },
         updatePropertyByID: function(id, name, value) {
-            console.log('updatePropertyByID:', value)
+            // console.log('updatePropertyByID:', value)
             var node = SnapMount.getNode(id)
             if (node.nodeName === 'INPUT' && name === 'value') {
                 node.value = value
@@ -1444,7 +1445,7 @@
         onKeyup: null
     }
 
-    var doc = document.body
+    // var doc = document.body
     var eventQueue = []
     this.SnapEventManager = {
         bindedEvents: {},
@@ -1454,7 +1455,7 @@
                 this.bindedEvents[eventName] = {}
 
                 var self = this
-                doc.addEventListener(removePrefix(eventName), function(eventObject) {
+                document.body.addEventListener(removePrefix(eventName), function(eventObject) {
                     self.dispatchEvent(eventName, eventObject)
                 })
             }

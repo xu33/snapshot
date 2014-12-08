@@ -39,23 +39,15 @@
                 )
             }
 
-            items.push(vom('Input', {
+            items.push(vom('input', {
                 value: 'abc',
-                onKeyup: this.handleChange
+                onChange: this.handleChange
             }))
 
-            return vom('div', {
-                onClick: this.handleClick,
-                onKeyup: this.handleChange
-            }, items)
-        },
-        afterRender: function() {
-            console.log('list after render fire')
-        },
-        handleClick: function() {
-            console.log('parent click fire')
+            return vom('div', null, items)
         },
         handleChange: function(event) {
+            console.log('parent change fire')
             this.setProps({
                 value: event.target.value
             })

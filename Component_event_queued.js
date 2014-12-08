@@ -182,6 +182,34 @@
         }
         // utils end
 
+    var SnapClass = {
+        define: function(spec) {
+            var Constructor = function(props) {}
+            assign(Constructor.prototype, SnapComponent.methods, spec)
+
+            // var factory = function() {
+            //     var args = _slice.call(arguments)
+            //     args.unshift(Constructor)
+            //     return SnapElement.createElement.apply(null, args) // 返回一个SnapElement实例
+            // }
+
+            // factory.type = Constructor
+            // return factory 
+            return Constructor
+        },
+        createElement: function(type, props, children) {
+            // 下面的转到element里面做
+            // if (typeof type !== 'function') {
+            //     return SnapElement.createElement.apply(null, arguments) // type: div
+            // } else {
+            //     return type.apply(null, _slice.call(arguments, 1)) // type: 自定义元素的factory
+            //     // return SnapElement.createElement.apply(null, arguments)
+            // }
+
+            return SnapElement.createElement.apply(null, arguments)
+        }
+    }
+
     var SnapElement = function(type, key, ref, owner, props) {
         this.type = type
         this.key = key
@@ -799,7 +827,10 @@
         mountComponent: function(rootId, mountDepth) {
             this._rootNodeID = rootId
             this._mountDepth = mountDepth
-            this._renderedComponent = initSnapComponent( this._renderComponent() )
+            this._renderedComponent = initSnapComponent( 
+                this._renderComponent(),
+                this._currentElement.type
+            )
 
             // console.log('this._renderedComponent is', this._renderedComponent instanceof SnapDomComponent)
             // console.log('this is ', this._renderedComponent instanceof SnapComponent)
@@ -1053,7 +1084,7 @@
     */
     var nodeCache = {} // snapid:element hash
     var instancesByRootId = {} // rootId->rootComponent hash
-    window.instancesHashTable = {} // id->component hash
+    var instancesHashTable = {} // id->component hash
     var containersByRootId = {} // rootId->dom container hash
     var rootElementsByRootId = {} // rootId->root element hash
     var deepestNodeUntilNow = null
@@ -1187,31 +1218,62 @@
         isAncestorIDOf: isAncestorIDOf
     }
 
+    /**************************** input component **************************************/
+    var InputComponent = SnapClass.define({
+        render: function() {
+            console.log('InputComponent render fire')
+            var ipt = Snap.createElement('input', this.props)
+
+            if (this.props.hasOwnProperty('value') && !this.props.onChange) {
+                ipt.props.onChange = this.defaultHandleChange
+            }
+            
+            return ipt
+        },
+        defaultHandleChange: function(event) {
+            if (event.target.value !== this.props.value) {
+                this.setProps({
+                    value: this.props.value
+                })
+            }
+        }
+    })
+    /**************************** input component end **************************************/
+    
+    var predefinedComponents = {
+        'input': InputComponent
+    }
+
+    var SnapPredefined = {
+        createInstance: function(tagName, props, parentType) {
+            var componentClass = predefinedComponents[tagName]
+            console.log('createInstance fire', tagName, componentClass)
+            if (!componentClass) {
+                return new SnapDomComponent(tagName, props)
+            }
+
+            // 防止递归
+            if (parentType === tagName) {
+                return new SnapDomComponent(tagName, props)
+            }
+
+
+
+            return new componentClass(props)
+        }
+    }
+
     /*
     @element SnapElement Instance
     */
-    function initSnapComponent(element, parentCompositeType) {
+    function initSnapComponent(element, parentType) {
         var instance
 
         if (typeof element.type === 'string') { // eg:'div'
-            if (element.type === 'Input') {
-                instance = new InputComponent(element.props)
-            } else {
-                instance = new SnapDomComponent(element.type, element.props, parentCompositeType)
-            }
-
-            // instance = new SnapDomComponent(element.type, element.props, parentCompositeType)
+            instance = SnapPredefined.createInstance(element.type, element.props, parentType)
         } else {
             instance = new element.type(element.props) // SnapComponent
         }
-
-        /*
-        try {
-            instance.construct(element)
-        } catch (e) {
-            console.log(element, element.type)
-        }
-        */
 
         instance.construct(element)
         return instance
@@ -1530,54 +1592,11 @@
             }
         }
     }
+    /*************************************** 事件处理 end *************************************/
 
-    /*************************************** 事件处理 *************************************/
     this.Snap = {
-        define: function(spec) {
-            var Constructor = function(props) {}
-            assign(Constructor.prototype, SnapComponent.methods, spec)
-
-            // var factory = function() {
-            //     var args = _slice.call(arguments)
-            //     args.unshift(Constructor)
-            //     return SnapElement.createElement.apply(null, args) // 返回一个SnapElement实例
-            // }
-
-            // factory.type = Constructor
-            // return factory 
-            return Constructor
-        },
-        createElement: function(type, props, children) {
-            // 下面的转到element里面做
-            // if (typeof type !== 'function') {
-            //     return SnapElement.createElement.apply(null, arguments) // type: div
-            // } else {
-            //     return type.apply(null, _slice.call(arguments, 1)) // type: 自定义元素的factory
-            //     // return SnapElement.createElement.apply(null, arguments)
-            // }
-
-            return SnapElement.createElement.apply(null, arguments)
-        },
+        define: SnapClass.define,
+        createElement: SnapClass.createElement,
         render: SnapMount.render
     }
-
-    var InputComponent = Snap.define({
-        render: function() {
-            console.log('render fire')
-            var ipt = Snap.createElement('input', this.props)
-
-            if (this.props.hasOwnProperty('value') && !this.props.onKeyup) {
-                ipt.props.onKeyup = this.defaultHandleChange
-            }
-            
-            return ipt
-        },
-        defaultHandleChange: function(event) {
-            if (event.target.value !== this.props.value) {
-                this.setProps({
-                    value: this.props.value
-                })
-            }
-        }
-    })
 }())

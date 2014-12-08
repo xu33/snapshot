@@ -3,7 +3,17 @@ var CLOSE_RE = /^<\/([-A-Za-z0-9_]+)[^>]*>/
 var ATTR_RE = /([\-A-Za-z0-9_]+)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g
 var UNARYS = keyMirror("area,base,basefont,br,col,frame,hr,img,input,isindex,link,meta,param,embed")
 var PROPS = keyMirror("checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected")
-var NORMAL_TAGS = keyMirror('div,p,table,span,input,tr,td,th,tbody,section,article,select,strong,i,b,ul,ol,li,dl,dt,form,button,img')
+
+var NORMAL_TAGS = keyMirror('a,abbr,acronym,address,applet,area,article,aside,audio,b,base,basefont,
+	bdi,bdo,big,blockquote,body,br,button,
+	canvas,caption,center,cite,code,col,colgroup,command,datalist,dd,del,details,dfn,dialog,dir,
+	div,dl,dt,em,embed,fieldset,figcaption,figure,font,footer,form,frame,frameset,h1,head,
+	header,hgroup,hr,html,i,iframe,img,input,ins,kbd,keygen,label,legend,li,link,
+	map,mark,menu,meta,meter,nav,noframes,noscript,object,ol,optgroup,option,output,p,
+	param,pre,progress,q,rp,rt,ruby,s,samp,script,section,select,small,source,span,
+	strike,strong,style,sub,summary,sup,table,tbody,td,textarea,tfoot,th,thead,time,
+	title,tr,track,tt,u,ul,var,video,wbr')
+
 var JS_VARIABLE_RE = /{([^{}]+)}/
 var OPEN_BRACKET = '<'
 
@@ -156,7 +166,7 @@ function attrsToString(attrs) {
 			str +=  '"' + attr.value + '"'
 		}
 		if (j < attrLength - 1) {
-			str += ', '
+			str += ,
 		}
 	}
 
@@ -213,7 +223,7 @@ function transform(tokens) {
 			}
 		} else if (token.type === 'text') {
 			if (stack.length > 0) {
-				str += ', '
+				str += ,
 			}
 
 			if (isVar(token.value)) {

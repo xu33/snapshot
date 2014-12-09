@@ -5,7 +5,8 @@
     <title>index</title>
 </head>
 <body>
-    <script src="component_event_queued.js"></script>
+    <script src="es5-shim.js"></script>
+    <script src="component.js"></script>
     <script>
     var vom = Snap.createElement
     var Item = Snap.define({
@@ -19,7 +20,6 @@
         },
         handleClick: function(event) {
             console.log('child click fire')
-            this.props.func()
         }
     })
 
@@ -33,8 +33,7 @@
                 items.push(
                     vom(Item, {
                         item: list[i],
-                        key: list[i],
-                        func: this.func.bind(this)
+                        key: list[i]
                     })
                 )
             }
@@ -47,13 +46,13 @@
             return vom('div', null, items)
         },
         handleChange: function(event) {
-            console.log('parent change fire')
+            // console.log('parent change fire')
             this.setProps({
                 value: event.target.value
             })
         },
-        func: function() {
-            alert(1)
+        afterRender: function() {
+            // console.log('list after render fire')
         }
     })
 
@@ -65,12 +64,19 @@
         document.body
     )
 
-    // setTimeout(function() {
-    //     co.props.list.push('abc')
-    //     co.setProps({
-    //         list: co.props.list
-    //     })
-    // }, 1000)
+    setTimeout(function() {
+        // co.props.list.push('abc')
+        // co.setProps({
+        //     list: co.props.list
+        // })
+
+        Snap.render(
+            vom(List, {
+                list: [1,2,3],
+                value: 'abc'
+            }), document.body
+        )
+    }, 2000)
 
 // function listen(el, type, listener) {
 //     var found = false

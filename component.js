@@ -1247,17 +1247,20 @@
     var SnapPredefined = {
         createInstance: function(tagName, props, parentType) {
             var componentClass = predefinedComponents[tagName]
-            console.log('createInstance fire', tagName, componentClass)
+            // console.log('createInstance fire', tagName, componentClass)
             if (!componentClass) {
                 return new SnapDomComponent(tagName, props)
             }
 
             // 防止递归
             if (parentType === tagName) {
+                if (typeof parentType === 'function') {
+                    throw '错误的自定义标签嵌套'
+                    return
+                }
+
                 return new SnapDomComponent(tagName, props)
             }
-
-
 
             return new componentClass(props)
         }
@@ -1279,8 +1282,27 @@
         return instance
     }
 
+    function getRootId(container) {
+        var rootElement = SnapMount.getRootElementInContainer(container)
+        return rootElement && SnapMount.getID(rootElement)
+    }
+
     var SnapMount = {
         render: function(nextElement, container, callback) {
+            var prevComponent = instancesByRootId[getRootId(container)]
+            if (prevComponent) {
+                var prevElement = prevComponent._currentElement
+                if (shouldUpdate(prevElement, nextElement)) {
+                    return SnapMount._updateRootComponent(
+                        prevComponent,
+                        nextElement,
+                        container
+                    )
+                } else {
+                    SnapMount.unmountComponentFromContainer(container)
+                }
+            }
+
             var component = SnapMount._renderRootComponent(
                 nextElement,
                 container
@@ -1289,6 +1311,23 @@
             callback && callback(component)
             return component
         },
+        unmountComponentFromContainer: function(container) {
+            var snapRootId = getRootId(container)
+            var component = instancesByRootId[snapRootId]
+            if (!component) {
+                return false
+            }
+
+            component.unmountComponent()
+            while (container.lastChild) {
+                container.removeChild(container.lastChild)
+            }
+
+            delete instancesByRootId[snapRootId]
+            delete containersByRootId[snapRootId]
+            delete rootElementsByRootId[snapRootId]
+            return true
+        },
         _registerComponent: function(nextComponent, container) {
             var rootId = SnapMount.registerContainer(container)
             instancesByRootId[rootId] = nextComponent
@@ -1296,7 +1335,7 @@
             return rootId
         },
         registerContainer: function(container) {
-            var rootId = SnapMount.getrootId(container)
+            var rootId = SnapMount.getRootId(container)
 
             if (rootId) {
                 rootId = SnapInstanceHandles.getRootIdOfNodeID(rootId)
@@ -1323,10 +1362,14 @@
 
             return componentInstance
         },
-        getrootId: function(container) {
-            var rootElement = SnapMount.getRootElementInContainer(container)
-            return rootElement && SnapMount.getID(rootElement)
+        _updateRootComponent: function(prevComponent, nextComponent, container) {
+            // console.log('_updateRootComponent fire')
+            var nextProps = nextComponent.props
+            prevComponent.replaceProps(nextProps)
+            rootElementsByRootId[getRootId(container)] = SnapMount.getRootElementInContainer(container)
+            return prevComponent
         },
+        getRootId: getRootId,
         getRootElementInContainer: function(container) {
             if (!container) {
                 return null
@@ -1509,21 +1552,41 @@
 
     // var doc = document.body
     var eventQueue = []
-    this.SnapEventManager = {
+    function addEvent(eventType, listener) {
+        if (window.addEventListener) {
+            document.body.addEventListener(eventType, listener)
+        } else if (window.attachEvent) {
+            document.body.attachEvent('on' + eventType, listener)
+        }
+    }
+
+    function getEventObject(eventObject) {
+        return eventObject || window.event
+    }
+
+    function normalizeEvent(eventObject) {
+        eventObject.target = eventObject.target || eventObject.srcElement
+    }
+
+
+    var SnapEventManager = {
         bindedEvents: {},
         registerEvent: function(eventName, nodeId, listener) {
             // console.log('registerEvent fire:', removePrefix(eventName))
+            var self = this
             if (!this.bindedEvents.hasOwnProperty(eventName)) {
                 this.bindedEvents[eventName] = {}
 
-                var self = this
-                document.body.addEventListener(removePrefix(eventName), function(eventObject) {
-                    self.dispatchEvent(eventName, eventObject)
+                addEvent(removePrefix(eventName), function(eventObject) {
+                    self.dispatchEvent(
+                        eventName, 
+                        getEventObject(eventObject)
+                    )
                 })
             }
 
             this.bindedEvents[eventName][nodeId] = listener
-            console.log(this.bindedEvents[eventName])
+            // console.log(this.bindedEvents[eventName])
         },
         removeEvent: function(eventName, dispatchId) {
             // console.log('removeEvent', dispatchId)
@@ -1544,6 +1607,7 @@
             //     this.executeListener(eventName, eventObject)
             // }
 
+            normalizeEvent(eventObject)
             this.executeListener(eventName, eventObject)
         },
         /*

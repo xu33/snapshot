@@ -186,7 +186,9 @@
         define: function(spec) {
             var Constructor = function(props) {}
             assign(Constructor.prototype, SnapComponent.methods, spec)
-
+            if (spec.getDefaultProps) {
+                Constructor.defaultProps = spec.getDefaultProps()
+            }
             // var factory = function() {
             //     var args = _slice.call(arguments)
             //     args.unshift(Constructor)
@@ -232,6 +234,10 @@
         var props = {}
         var key = null
         var ref = null
+
+        if (type.defaultProps) {
+            assign(props, type.defaultProps)
+        }
 
         if (config != null) {
             ref = config.ref === undefined ? null : config.ref

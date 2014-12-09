@@ -10,9 +10,14 @@
     <script>
     var vom = Snap.createElement
     var Item = Snap.define({
+        getDefaultProps: function() {
+            return {
+                title: 'Item:'
+            }
+        },
         render: function() {
             return Snap.createElement("div", {key:this.props.key},
-                Snap.createElement("span", {onClick:this.handleClick}, this.props.item)
+                Snap.createElement("span", {onClick:this.handleClick}, this.props.title + ':' + this.props.item)
             )
         },
         afterRender: function() {
@@ -33,7 +38,8 @@
                 items.push(
                     vom(Item, {
                         item: list[i],
-                        key: list[i]
+                        key: list[i],
+                        title: list[i] * i
                     })
                 )
             }
@@ -64,9 +70,9 @@
         document.body
     )
 
-    Snap.render(vom(Item, {
-        item: 'aaa'
-    }), document.body)
+    // Snap.render(vom(Item, {
+    //     item: 'aaa'
+    // }), document.body)
 
     // setTimeout(function() {
     //     Snap.render(

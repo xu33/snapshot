@@ -459,6 +459,9 @@
             delete nodeCache[this._rootNodeID]
             this._rootNodeID = null
         },
+        mountComponentIntoNode: function(rootId, container) {
+            SnapComponent.methods.mountComponentIntoNode.call(this, rootId, container)
+        },
         bindEventListener: function(eventName, handlerFunc) {
             if (this._owner) {
                 handlerFunc = handlerFunc.bind(this._owner)
@@ -755,10 +758,10 @@
     var SnapComponentBase = function() {}
     SnapComponentBase.methods = {
         mountComponent: function() {
-            instancesHashTable[this._rootNodeID] = this
+            instancesBySnapId[this._rootNodeID] = this
         },
         unmountComponent: function() {
-            delete instancesHashTable[this._rootNodeID]
+            delete instancesBySnapId[this._rootNodeID]
         }
     }
 
@@ -1084,8 +1087,8 @@
     */
     var nodeCache = {} // snapid:element hash
     var instancesByRootId = {} // rootId->rootComponent hash
-    var instancesHashTable = {} // id->component hash
-    var containersByRootId = {} // rootId->dom container hash
+    var instancesBySnapId = {} // snapId->component hash
+    var containersByRootId = {} // rootId->container element hash
     var rootElementsByRootId = {} // rootId->root element hash
     var deepestNodeUntilNow = null
 

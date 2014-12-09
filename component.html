@@ -64,19 +64,18 @@
         document.body
     )
 
-    setTimeout(function() {
-        // co.props.list.push('abc')
-        // co.setProps({
-        //     list: co.props.list
-        // })
+    Snap.render(vom(Item, {
+        item: 'aaa'
+    }), document.body)
 
-        Snap.render(
-            vom(List, {
-                list: [1,2,3],
-                value: 'abc'
-            }), document.body
-        )
-    }, 2000)
+    // setTimeout(function() {
+    //     Snap.render(
+    //         vom(List, {
+    //             list: [1,2,3],
+    //             value: 'abc'
+    //         }), document.body
+    //     )
+    // }, 2000)
 
 // function listen(el, type, listener) {
 //     var found = false

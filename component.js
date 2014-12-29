@@ -171,17 +171,17 @@
     }
 
     function shouldUpdate(prevElement, nextElement) {
-            if (prevElement && nextElement &&
-                prevElement.type === nextElement.type &&
-                prevElement.key === nextElement.key &&
-                prevElement._owner === nextElement._owner) {
-                return true
-            } else {
-                return false
-            }
+        if (prevElement && nextElement &&
+            prevElement.type === nextElement.type &&
+            prevElement.key === nextElement.key &&
+            prevElement._owner === nextElement._owner) {
+            return true
+        } else {
+            return false
         }
-        // utils end
-
+    }
+    
+    // utils end
     var SnapClass = {
         define: function(spec) {
             var Constructor = function(props) {}
@@ -1099,7 +1099,7 @@
     var deepestNodeUntilNow = null
 
     function traverseAncestors(targetID, callback, arg) {
-        traverseParentPath('', targetID, callback, arg, true, false)
+        traverseParentPath('  ', targetID, callback, arg, true, false)
     }
 
     function traverseParentPath(start, stop, callback, arg, skipFirst, skipLast) {
@@ -1230,7 +1230,7 @@
     /**************************** input component **************************************/
     var InputComponent = SnapClass.define({
         render: function() {
-            console.log('InputComponent render fire')
+            // console.log('InputComponent render fire')
             var ipt = Snap.createElement('input', this.props)
 
             if (this.props.hasOwnProperty('value') && !this.props.onChange) {
@@ -1436,12 +1436,12 @@
         findRootElement: function(ancestorNode, targetID) {
             var firstChildren = []
             var childIndex = 0
-
             var deepestAncestor = findDeepestCachedAncestor(targetID) || ancestorNode
 
             firstChildren[0] = deepestAncestor.firstChild
             firstChildren.length = 1
 
+            // 遍历subtree，查找匹配的节点
             while (childIndex < firstChildren.length) {
                 var child = firstChildren[childIndex++]
                 var targetChild
@@ -1449,9 +1449,18 @@
                 while (child) {
                     var childID = SnapMount.getID(child)
                     if (childID) {
+                        /*
+                        这个地方已经找到了需要的节点，不过并不break，
+                        是为了通过getID方法尽量多缓存一些节点，
+                        提高后续调用getNode方法的速度
+                        */
                         if (targetID === childID) {
                             targetChild = child
                         } else if (SnapInstanceHandles.isAncestorIDOf(childID, targetID)) {
+                            /*
+                            如果当前节点是目标节点的祖先，则可以确定只要沿着这个节点向下找即可，
+                            所以在这里把队列清空一下，直接把当前节点放进去
+                            */
                             firstChildren.length = childIndex = 0
                             firstChildren.push(child.firstChild)
                         }
@@ -1510,7 +1519,6 @@
             return resultList
         }
     }
-
     
     // 全局更新标志isUpdating
     var changedComponents = []
@@ -1576,7 +1584,6 @@
     function normalizeEvent(eventObject) {
         eventObject.target = eventObject.target || eventObject.srcElement
     }
-
 
     var SnapEventManager = {
         bindedEvents: {},

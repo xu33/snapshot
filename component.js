@@ -180,7 +180,7 @@
             return false
         }
     }
-    
+
     // utils end
     var SnapClass = {
         define: function(spec) {
@@ -1099,7 +1099,7 @@
     var deepestNodeUntilNow = null
 
     function traverseAncestors(targetID, callback, arg) {
-        traverseParentPath('  ', targetID, callback, arg, true, false)
+        traverseParentPath('', targetID, callback, arg, true, false)
     }
 
     function traverseParentPath(start, stop, callback, arg, skipFirst, skipLast) {
@@ -1162,7 +1162,6 @@
     eg:
     ancestorID = a.b
     destinationID = a.b.c.d
-
     nextAncestorID = a.b.c
     */
     function getNextDescendantID(ancestorID, destinationID) {
@@ -1436,6 +1435,8 @@
         findRootElement: function(ancestorNode, targetID) {
             var firstChildren = []
             var childIndex = 0
+
+            // 在nodeCache中查找最近的祖先节点
             var deepestAncestor = findDeepestCachedAncestor(targetID) || ancestorNode
 
             firstChildren[0] = deepestAncestor.firstChild
@@ -1450,21 +1451,24 @@
                     var childID = SnapMount.getID(child)
                     if (childID) {
                         /*
-                        这个地方已经找到了需要的节点，不过并不break，
-                        是为了通过getID方法尽量多缓存一些节点，
-                        提高后续调用getNode方法的速度
+                        这个地方已经找到了需要的节点，理论上可以直接返回值，不过我们继续循环下去 
+                        目的是为了通过getID方法尽量多缓存一些节点，提高后续调用getNode方法的速度
                         */
                         if (targetID === childID) {
                             targetChild = child
                         } else if (SnapInstanceHandles.isAncestorIDOf(childID, targetID)) {
                             /*
                             如果当前节点是目标节点的祖先，则可以确定只要沿着这个节点向下找即可，
-                            所以在这里把队列清空一下，直接把当前节点放进去
+                            其他节点不用管了，所以在这里把队列清空一下，直接把当前节点放进去
                             */
                             firstChildren.length = childIndex = 0
                             firstChildren.push(child.firstChild)
                         }
                     } else {
+                        /*
+                        如果当前节点没有ID，可能是浏览器在innerHTML执行时候自动插入了某些节点，例如tbody等，
+                        这里只是简单的把这个分支加入队列，排在兄弟节点之后进行处理
+                        */
                         firstChildren.push(child.firstChild)
                     }
 
@@ -1472,12 +1476,15 @@
                 }
 
                 if (targetChild) {
+                    /*
+                    这里把数组清空有助V8引擎进行GC
+                    */
                     firstChildren.length = 0
-
                     return targetChild
                 }
             }
 
+            // 同上，GC
             firstChildren.length = 0
         },
         renderMarkup: function(markupList) {

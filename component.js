@@ -1106,39 +1106,36 @@
         start = start || ''
         stop = stop || ''
 
-        var traverseUp = isAncestorIDOf(stop, start)
-
         // 从start到stop，一次经过一层
+        var traverseUp = isAncestorIDOf(stop, start)
         var depth = 0
-        var nextId = traverseUp ? getParentID : getNextDescendantID
+        var getNextId = traverseUp ? getParentID : getNextDescendantID
 
         var id = start
         while (true) {
             var ret
             if ((!skipFirst || id !== start) && (!skipLast || id !== stop)) {
-                ret = callback(id, traverseUp, arg)
+                ret = callback(id)
             }
 
             if (ret === false || id === stop) {
                 break
             }
 
-            id = nextId(id, stop)
+            id = getNextId(id, stop)
         }
     }
 
-    function _findDeepestCachedAncestor(ancestorID) {
-        var ancestor = nodeCache[ancestorID]
-        if (ancestor) {
-            deepestNodeUntilNow = ancestor
-        } else {
-            return false
-        }
-    }
-
-    function findDeepestCachedAncestor(targetID) {
+    function findDeepestAncestorFromCache(targetId) {
         deepestNodeUntilNow = null
-        traverseAncestors(targetID, _findDeepestCachedAncestor)
+        traverseAncestors(targetID, function(ancestorID) {
+            var ancestor = nodeCache[ancestorID]
+            if (ancestor) {
+                deepestNodeUntilNow = ancestor
+            } else {
+                return false
+            }
+        })
 
         var foundNode = deepestNodeUntilNow
         deepestNodeUntilNow = null
@@ -1162,7 +1159,7 @@
     eg:
     ancestorID = a.b
     destinationID = a.b.c.d
-    nextAncestorID = a.b.c
+    nextDescendantID = a.b.c
     */
     function getNextDescendantID(ancestorID, destinationID) {
         if (ancestorID === destinationID) {
@@ -1437,7 +1434,7 @@
             var childIndex = 0
 
             // 在nodeCache中查找最近的祖先节点
-            var deepestAncestor = findDeepestCachedAncestor(targetID) || ancestorNode
+            var deepestAncestor = findDeepestAncestorFromCache(targetID) || ancestorNode
 
             firstChildren[0] = deepestAncestor.firstChild
             firstChildren.length = 1
@@ -1451,8 +1448,8 @@
                     var childID = SnapMount.getID(child)
                     if (childID) {
                         /*
-                        这个地方已经找到了需要的节点，理论上可以直接返回值，不过我们继续循环下去 
-                        目的是为了通过getID方法尽量多缓存一些节点，提高后续调用getNode方法的速度
+                        这个地方已经找到了需要的节点，理论上可以直接返回值，继续循环下去 
+                        目的是通过执行getID方法尽量多缓存一些节点，提高后续调用getNode方法的速度
                         */
                         if (targetID === childID) {
                             targetChild = child
@@ -1467,7 +1464,7 @@
                     } else {
                         /*
                         如果当前节点没有ID，可能是浏览器在innerHTML执行时候自动插入了某些节点，例如tbody等，
-                        这里只是简单的把这个分支加入队列，排在兄弟节点之后进行处理
+                        这里只是简单的把这个分支加入队列，排在Sibling节点之后进行处理
                         */
                         firstChildren.push(child.firstChild)
                     }

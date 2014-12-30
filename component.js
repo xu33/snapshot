@@ -1267,7 +1267,9 @@
     /**************************** input component end **************************************/
     
     var predefinedComponents = {
-        'input': InputComponent
+        'input': InputComponent,
+        'select': null,
+        'textarea': null
     }
 
     var SnapPredefined = {

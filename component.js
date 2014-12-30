@@ -1128,6 +1128,7 @@
 
     /*
     遍历两个ID之间的parentPath，执行callback
+    callback返回fasle时，停止继续遍历
     */
     function traverseParentPath(start, stop, callback, skipFirst, skipLast) {
         start = start || ''

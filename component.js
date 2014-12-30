@@ -1,5 +1,24 @@
 (function() {
     // utils start
+    if (!Object.freeze) {
+        Object.freeze = function(obj) {
+            var props = Object.getOwnPropertyNames(obj);
+
+            for (var i = 0; i < props.length; i++) {
+                var desc = Object.getOwnPropertyDescriptor(obj, props[i]);
+
+                if ("value" in desc) {
+                    desc.writable = false;
+                }
+
+                desc.configurable = false;
+                Object.defineProperty(obj, props[i], desc);
+            }
+
+            return Object.preventExtensions(obj);
+        };
+    }
+
     var _slice = Array.prototype.slice
     function assign(target, sources) {
         var argumentsLength = arguments.length
@@ -147,9 +166,11 @@
                     callback
                 )
             }
-        } 
+        }
         /*
-        else if (isObject(children))
+        else if (isObject(children)) {
+            
+        }
         */
         else {
             var type = typeof children
@@ -1098,24 +1119,16 @@
     var rootElementsByRootId = {} // rootId->root element hash
     var deepestNodeUntilNow = null
 
-    function traverseAncestors(targetID, callback, arg) {
-        traverseParentPath('', targetID, callback, arg, true, false)
+    function traverseAncestors(targetID, callback) {
+        traverseParentPath('', targetID, callback, true, false)
     }
 
-    function traverseParentPath(start, stop, callback, arg, skipFirst, skipLast) {
+    function traverseParentPath(start, stop, callback, skipFirst, skipLast) {
         start = start || ''
         stop = stop || ''
 
-        var depth = 0, nextID
-        if (isAncestorIDOf(stop, start)) {
-            nextID = getParentID
-        } else {
-            nextID = getNextDescendantID
-        }
-
-        var id = start
-        while (true) {
-            var ret
+        var nextID = isAncestorIDOf(stop, start) ? getParentID : getNextDescendantID
+        for (var id = start, ret; ; id = nextID(id, stop)) {
             if ((!skipFirst || id !== start) && (!skipLast || id !== stop)) {
                 ret = callback(id)
             }
@@ -1123,8 +1136,6 @@
             if (ret === false || id === stop) {
                 break
             }
-
-            id = nextID(id, stop)
         }
     }
 
@@ -1159,9 +1170,9 @@
     /*
     返回下一个祖先节点的id
     eg:
-    ancestorID = a.b
+    ancestorID = a
     destinationID = a.b.c.d
-    nextDescendantID = a.b.c
+    nextDescendantID = a.b
     */
     function getNextDescendantID(ancestorID, destinationID) {
         if (ancestorID === destinationID) {
@@ -1179,20 +1190,12 @@
     }
 
     function isAncestorIDOf(ancestorID, descendantID) {
-        /*
-        eg:
-        a.b is Ancestor ID Of a.b.c
-        a.bb is not
-        */
+        // a.b is AncestorID Of a.b.c.d
         return ( descendantID.indexOf(ancestorID) === 0 && isEdge(descendantID, ancestorID.length) )
     }
 
     function getParentID(id) {
-        /*
-        eg:
-        id = a.b.c
-        pid = a.b
-        */
+        // a.b is parentID of a.b.c
         return id ? id.substr(0, id.lastIndexOf('.')) : ''
     }
 

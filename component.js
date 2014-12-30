@@ -1106,10 +1106,12 @@
         start = start || ''
         stop = stop || ''
 
-        // 从start到stop，一次经过一层
-        var traverseUp = isAncestorIDOf(stop, start)
-        var depth = 0
-        var getNextId = traverseUp ? getParentID : getNextDescendantID
+        var depth = 0, nextID
+        if (isAncestorIDOf(stop, start)) {
+            nextID = getParentID
+        } else {
+            nextID = getNextDescendantID
+        }
 
         var id = start
         while (true) {
@@ -1122,13 +1124,13 @@
                 break
             }
 
-            id = getNextId(id, stop)
+            id = nextID(id, stop)
         }
     }
 
     function findDeepestAncestorFromCache(targetId) {
         deepestNodeUntilNow = null
-        traverseAncestors(targetID, function(ancestorID) {
+        traverseAncestors(targetId, function(ancestorID) {
             var ancestor = nodeCache[ancestorID]
             if (ancestor) {
                 deepestNodeUntilNow = ancestor
@@ -1195,7 +1197,7 @@
     }
 
     var SnapInstanceHandles = {
-        createrootId: function() {
+        createRootID: function() {
             var rootId = SnapRootIndex.createSnapRootIndex()
             rootId = '.' + rootId.toString(36)
             return rootId
@@ -1347,7 +1349,7 @@
             }
 
             if (!rootId) {
-                rootId = SnapInstanceHandles.createrootId()
+                rootId = SnapInstanceHandles.createRootID()
             }
 
             containersByRootId[rootId] = container
@@ -1433,13 +1435,13 @@
             var firstChildren = []
             var childIndex = 0
 
-            // 在nodeCache中查找最近的祖先节点
+            // 先在cache中查找，之后再到domtree中查找
             var deepestAncestor = findDeepestAncestorFromCache(targetID) || ancestorNode
 
             firstChildren[0] = deepestAncestor.firstChild
             firstChildren.length = 1
 
-            // 遍历subtree，查找匹配的节点
+            // 遍历dom subtree，查找匹配的节点
             while (childIndex < firstChildren.length) {
                 var child = firstChildren[childIndex++]
                 var targetChild
@@ -1449,7 +1451,7 @@
                     if (childID) {
                         /*
                         这个地方已经找到了需要的节点，理论上可以直接返回值，继续循环下去 
-                        目的是通过执行getID方法尽量多缓存一些节点，提高后续调用getNode方法的速度
+                        目的是通过执行getID方法把经过的节点都缓存起来，提高下次调用getNode方法的速度
                         */
                         if (targetID === childID) {
                             targetChild = child
@@ -1464,7 +1466,7 @@
                     } else {
                         /*
                         如果当前节点没有ID，可能是浏览器在innerHTML执行时候自动插入了某些节点，例如tbody等，
-                        这里只是简单的把这个分支加入队列，排在Sibling节点之后进行处理
+                        这里只是乐观 的把这个分支加入队列，排在Sibling节点之后进行处理
                         */
                         firstChildren.push(child.firstChild)
                     }

@@ -1120,14 +1120,14 @@
     var deepestNodeUntilNow = null
 
     /*
-    这个traverse发生在字符串ID层，不会碰DOM树
+    这个遍历发生在字符串ID层，不会碰DOM树
     */
     function traverseAncestors(targetID, callback) {
         traverseParentPath('', targetID, callback, true, false)
     }
 
     /*
-    traverse两个ID之间的parentPath
+    遍历两个ID之间的parentPath，执行callback
     */
     function traverseParentPath(start, stop, callback, skipFirst, skipLast) {
         start = start || ''
@@ -1170,7 +1170,7 @@
         return foundNode
     }
 
-    // 下个字符是点或者id结束位置
+    // 索引位置是点或者id结束
     /*
     eg:
     a.b 1 isEdge is true
@@ -1239,7 +1239,8 @@
 
             return null
         },
-        isAncestorIDOf: isAncestorIDOf
+        isAncestorIDOf: isAncestorIDOf,
+        traverseAncestors: traverseAncestors
     }
 
     /**************************** input component **************************************/

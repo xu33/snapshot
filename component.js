@@ -1119,16 +1119,30 @@
     var rootElementsByRootId = {} // rootId->root element hash
     var deepestNodeUntilNow = null
 
+    /*
+    这个traverse发生在字符串ID层，不会碰DOM树
+    */
     function traverseAncestors(targetID, callback) {
         traverseParentPath('', targetID, callback, true, false)
     }
 
+    /*
+    traverse两个ID之间的parentPath
+    */
     function traverseParentPath(start, stop, callback, skipFirst, skipLast) {
         start = start || ''
         stop = stop || ''
 
-        var nextID = isAncestorIDOf(stop, start) ? getParentID : getNextDescendantID
-        for (var id = start, ret; ; id = nextID(id, stop)) {
+        if (start === stop) {
+            throw '起始点和终点必须不同'
+        }
+
+        if (!isAncestorIDOf(stop, start) && !isAncestorIDOf(start, stop)) {
+            throw '两点之间不存在通路'
+        }
+
+        var traverse = isAncestorIDOf(stop, start) ? getParentID : getNextDescendantID
+        for (var id = start, ret; ; id = traverse(id, stop)) {
             if ((!skipFirst || id !== start) && (!skipLast || id !== stop)) {
                 ret = callback(id)
             }
